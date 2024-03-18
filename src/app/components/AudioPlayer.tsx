@@ -1,19 +1,18 @@
 "use client";
 
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
+import { Video } from "../page";
+import AudioBox from "./AudioBox";
 
 interface AudioPlayerProps {
-  video: {
-    id: number;
-    url: string;
-    label: string;
-  };
+  videos: Video[];
 }
 
-const AudioPlayer: FC<AudioPlayerProps> = ({ video }) => {
+const AudioPlayer: FC<AudioPlayerProps> = ({ videos }) => {
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(
     null
   );
+  const [progress, setProgress] = useState(0); // Progress state
 
   const playAudio = (url: string) => {
     if (currentAudio) {
@@ -24,15 +23,26 @@ const AudioPlayer: FC<AudioPlayerProps> = ({ video }) => {
     audio.play();
   };
 
+  useEffect(() => {
+    if (currentAudio) {
+      currentAudio.addEventListener("timeupdate", () => {
+        const percentage =
+          (currentAudio.currentTime / currentAudio.duration) * 100;
+        setProgress(percentage);
+      });
+    }
+  }, [currentAudio]);
+
   return (
-    <div
-      key={video.id}
-      className="w-[45%] p-2 h-[180px] bg-opacity-50 rounded-lg flex items-center justify-center border-4 border-black  bg-[#ffb404]"
-      onClick={() => playAudio(video.url)}
-    >
-      <p className="text-3xl text-center font-bold font-outline-2 text-[#ffb404]">
-        {video.label}
-      </p>
+    <div className="grid grid-cols-2 gap-4 md:gap-6 mt-[400px]">
+      {videos.map((video) => (
+        <AudioBox
+          key={video.id}
+          video={video}
+          playAudio={playAudio}
+          progress={progress}
+        />
+      ))}
     </div>
   );
 };
